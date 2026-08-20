@@ -8,7 +8,8 @@ import com.ecommerce.product.dto.ProductResquest;
 
 public interface ProductService {
 
-	ProductResponse create(ProductResquest productrequest);
+	//ProductResponse create(ProductResquest productrequest);
+	List<ProductResponse> createProducts(List<ProductResquest> productRequests);
 
 	Optional<ProductResponse> updateProduct(String id, ProductResquest productrequest);
 

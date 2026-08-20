@@ -2,8 +2,9 @@ package com.ecommerce.order.service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.order.client.ProductClient;
@@ -13,6 +14,7 @@ import com.ecommerce.order.dto.ProductResponse;
 import com.ecommerce.order.dto.UserResponse;
 import com.ecommerce.order.model.CartItem;
 import com.ecommerce.order.repository.CartItemRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ public class CartServiceImpl implements CartService {
 	private final UserClient userClient;
 
 	@Override
+	@CacheEvict(value = "carts", key = "#userId")
 	public boolean addToCart(String userId, CartItemRequest request) {
 
 	    System.out.println("=== ADD TO CART ===");
@@ -105,6 +108,7 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
+	@CacheEvict(value = "carts", key = "#userId")
 	public boolean deleteItemFromCart(String userId, String productId) {
 		// TODO Auto-generated method stub
 		 try {
@@ -125,8 +129,9 @@ public class CartServiceImpl implements CartService {
 
 		    return true;
 	}
-
+	
 	@Override
+	@Cacheable(value = "carts", key = "#userId")
 	public List<CartItem> fetchAllCarts(String userId) {
 		// TODO Auto-generated method stub
 		 // Optional: validate user through User Service
@@ -141,6 +146,7 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
+	@CacheEvict(value = "carts", key = "#userId")
 	public void clearCart(String userId) {
 		// TODO Auto-generated method 
 		  cartItemRepository.deleteByUserId(userId);

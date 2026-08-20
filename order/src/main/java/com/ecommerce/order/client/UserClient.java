@@ -10,5 +10,5 @@ import com.ecommerce.order.dto.UserResponse;
 public interface UserClient {
 
 	  @GetMapping("/api/users/{id}")
-	    UserResponse getUser(@PathVariable String id);
+	    UserResponse getUser(@PathVariable("id") String id);
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.user.dto.AddressDto;
@@ -23,11 +25,13 @@ public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
 
 	@Override
+	@Cacheable(value = "users", key = "'allUsers'")
 	public List<UserResponse> fetchAllUsers() {
 		return userRepository.findAll().stream().map(this::mapToUserResponse).collect(Collectors.toList());
 	}
 
 	@Override
+	@CacheEvict(value = "users", key = "'allUsers'")
 	public void create(UserRequest userrequest) {
 		
 		 User user = new User();
@@ -56,6 +60,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Cacheable(value = "users", key = "#id")
 	public Optional<UserResponse> fetchUserById(String id) {
 		// TODO Auto-generated method stub
 		return userRepository.findById(id).map(this::mapToUserResponse);
@@ -68,6 +73,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@CacheEvict(value = "users", key = "#id")
 	public boolean editUserById(String id, UserRequest updatedUser) {
 		// TODO Auto-generated method stub
 		return userRepository.findById(id) .map(existingUser -> {

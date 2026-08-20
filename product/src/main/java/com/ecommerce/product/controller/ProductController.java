@@ -35,13 +35,26 @@ public class ProductController {
 	            .map(ResponseEntity::ok)
 	            .orElseGet(() -> ResponseEntity.notFound().build());
 	}
-
+	
 	@PostMapping
-	public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductResquest productrequest) {
+	public ResponseEntity<List<ProductResponse>> createProducts(
+	        @RequestBody List<ProductResquest> productRequests) {
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(productrequest));
-
+	    return ResponseEntity
+	            .status(HttpStatus.CREATED)
+	            .body(productService.createProducts(productRequests));
+		
 	}
+
+	/*
+	 * @PostMapping public ResponseEntity<ProductResponse>
+	 * createProduct(@RequestBody ProductResquest productrequest) {
+	 * 
+	 * return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(
+	 * productrequest));
+	 * 
+	 * }
+	 */
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ProductResponse> updateProduct(@PathVariable String id,

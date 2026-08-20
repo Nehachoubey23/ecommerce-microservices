@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.product.dto.ProductResponse;
@@ -19,15 +22,16 @@ public class ProductServiceImpl implements ProductService {
 
 	private final ProductRepository productRepository;
 
-	@Override
-	public ProductResponse create(ProductResquest productrequest) {
-		// TODO Auto-generated method stub
-		Product product = new Product();
-		updateProductfromRequest(product, productrequest);
-		Product savedProduct = productRepository.save(product);
-
-		return mapToProductResponse(savedProduct);
-	}
+	/*
+	 * @Override
+	 * 
+	 * @CachePut(value = "products", key = "#result.id") public ProductResponse
+	 * create(ProductResquest productrequest) { // TODO Auto-generated method stub
+	 * Product product = new Product(); updateProductfromRequest(product,
+	 * productrequest); Product savedProduct = productRepository.save(product);
+	 * 
+	 * return mapToProductResponse(savedProduct); }
+	 */
 
 	private ProductResponse mapToProductResponse(Product savedProduct) {
 		// TODO Auto-generated method stub
@@ -55,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	@CachePut(value = "products", key = "#id")
 	public Optional<ProductResponse> updateProduct(String id, ProductResquest productrequest) {
 		// TODO Auto-generated method stub
 
@@ -67,13 +72,18 @@ public class ProductServiceImpl implements ProductService {
 
 	}
 
+	@Cacheable(value = "products", key = "'all'")
 	@Override
 	public List<ProductResponse> fetchAllProducts() {
 		// TODO Auto-generated method stub
-		return productRepository.findByActiveTrue().stream().map(this::mapToProductResponse).collect(Collectors.toList());
+		System.out.println("===== FETCHING PRODUCTS FROM DATABASE =====");
+
+		return productRepository.findByActiveTrue().stream().map(this::mapToProductResponse)
+				.collect(Collectors.toList());
 	}
 
 	@Override
+	@CacheEvict(value = "products", key = "#id")
 	public boolean DeletedProducts(String id) {
 		// TODO Auto-generated method stub
 		return productRepository.findById(id).map(product -> {
@@ -81,21 +91,40 @@ public class ProductServiceImpl implements ProductService {
 			productRepository.save(product);
 			return true;
 		}).orElse(false);
-		
+
 	}
 
 	@Override
+	@Cacheable(value = "productSearch", key = "#keyword")
 	public List<ProductResponse> searchProducts(String keyword) {
 		// TODO Auto-generated method stub
-		return productRepository.searchProducts(keyword).stream().map(this::mapToProductResponse) .collect(Collectors.toList());
+		return productRepository.searchProducts(keyword).stream().map(this::mapToProductResponse)
+				.collect(Collectors.toList());
 	}
 
+	@Cacheable(value = "products", key = "#id")
 	@Override
 	public Optional<ProductResponse> getProductById(String id) {
 		// TODO Auto-generated method stub
-		return productRepository.findById(id)
-	            .map(this::mapToProductResponse);
+		return productRepository.findById(id).map(this::mapToProductResponse);
 	}
-	
-	
+
+	@Override
+	public List<ProductResponse> createProducts(List<ProductResquest> productRequests) {
+		// TODO Auto-generated method stub
+		List<Product> products = productRequests.stream()
+	            .map(request -> {
+	                Product product = new Product();
+	                updateProductfromRequest(product, request);
+	                return product;
+	            })
+	            .collect(Collectors.toList());
+
+	    List<Product> savedProducts = productRepository.saveAll(products);
+
+	    return savedProducts.stream()
+	            .map(this::mapToProductResponse)
+	            .collect(Collectors.toList());
+	}
+
 }

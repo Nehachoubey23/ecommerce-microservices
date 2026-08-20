@@ -45,7 +45,7 @@ public class OrderServiceImpl implements OrderService {
 		
 		Order order = new Order();
 		 order.setUserId(user.getId());
-		order.setStatus(OrderStatus.COFIRMED);
+		order.setStatus(OrderStatus.CONFIRMED);
 		order.setTotalAmount(totalPrice);
 		 List<OrderItem> orderItems = cartItems.stream()
 		            .map(item -> new OrderItem(
@@ -76,8 +76,7 @@ public class OrderServiceImpl implements OrderService {
 	                            item.getProductId(),
 	                            item.getQuantity(),
 	                            item.getPrice(),
-	                            item.getPrice().multiply(
-	                                    BigDecimal.valueOf(item.getQuantity()))
+	                            item.getPrice()
 	                    ))
 	                    .toList(),
 	            savedorder.getCreatedAt()
