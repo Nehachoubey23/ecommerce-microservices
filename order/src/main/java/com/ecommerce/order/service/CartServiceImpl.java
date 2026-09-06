@@ -26,7 +26,8 @@ public class CartServiceImpl implements CartService {
 	private final CartItemRepository cartItemRepository;
 	private final ProductClient productClient;
 	private final UserClient userClient;
-
+	private final ResilientProductClient resilientProductClient;
+	private final ResilientUserClient resilientUserClient;
 	@Override
 	@CacheEvict(value = "carts", key = "#userId")
 	public boolean addToCart(String userId, CartItemRequest request) {
@@ -36,36 +37,43 @@ public class CartServiceImpl implements CartService {
 	    System.out.println("Product ID: " + request.getProductId());
 	    System.out.println("Quantity: " + request.getQuantity());
 
-	    ProductResponse product;
-	    try {
-	        product = productClient.getProduct(request.getProductId());
+	    ProductResponse product =
+				resilientProductClient.getProduct(
+                        request.getProductId());
 
-	        System.out.println("Product fetched successfully");
-	        System.out.println("Stock: " + product.getStockQuantity());
+        if (product == null) {
 
-	    } catch (Exception e) {
-	        System.out.println("Product service call failed");
-	        e.printStackTrace();
-	        return false;
-	    }
+            System.out.println(
+                    "Product Service unavailable");
 
-	    // Check stock
+            return false;
+        }
+
+
+        System.out.println(
+                "Product fetched successfully");
+        System.out.println(
+                "Stock: " + product.getStockQuantity());
 	    if (product.getStockQuantity() < request.getQuantity()) {
 	        System.out.println("Stock check failed");
 	        return false;
 	    }
+	    UserResponse user =
+                resilientUserClient.getUser(userId);
 
-	    UserResponse user;
-	    try {
-	        user = userClient.getUser(userId);
+        if (user == null) {
 
-	        System.out.println("User fetched successfully: " + user.getId());
+            System.out.println(
+                    "User Service unavailable");
 
-	    } catch (Exception e) {
-	        System.out.println("User service call failed");
-	        e.printStackTrace();
-	        return false;
-	    }
+            return false;
+        }
+
+
+        System.out.println(
+                "User fetched successfully: "
+                + user.getId());
+
 
 	    CartItem existingCartItem =
 	            cartItemRepository.findByUserIdAndProductId(
@@ -111,18 +119,19 @@ public class CartServiceImpl implements CartService {
 	@CacheEvict(value = "carts", key = "#userId")
 	public boolean deleteItemFromCart(String userId, String productId) {
 		// TODO Auto-generated method stub
-		 try {
-		        userClient.getUser(userId);
-		    } catch (Exception e) {
-		        return false; // user not found
-		    }
+		 UserResponse user =
+	                resilientUserClient.getUser(userId);
+		 if (user == null) {
+	            return false;
+	        }
+
 
 		    CartItem cartItem =
 		            cartItemRepository.findByUserIdAndProductId(userId, productId);
 
 		    if (cartItem == null) {
-		        return false;
-		    }
+	            return false;
+	        }
 
 		    // Delete item
 		    cartItemRepository.delete(cartItem);
@@ -135,13 +144,16 @@ public class CartServiceImpl implements CartService {
 	public List<CartItem> fetchAllCarts(String userId) {
 		// TODO Auto-generated method stub
 		 // Optional: validate user through User Service
-	    try {
-	        userClient.getUser(userId);
-	    } catch (Exception e) {
-	        return List.of(); // user not found
-	    }
+		  UserResponse user =
+	                resilientUserClient.getUser(userId);
+
+		  if (user == null) {
+	            return List.of();
+	        }
+
 
 	    // Fetch all cart items for this user
+		  
 	    return cartItemRepository.findByUserId(userId);
 	}
 

@@ -25,6 +25,7 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderRepository orderRepository;
 	private final CartService cartService;
 	private final UserClient userClient;
+	private final ResilientUserClient resilientUserClient;
 
 	@Override
 	public Optional<OrderResponse> createOrder(String userId) {
@@ -33,12 +34,14 @@ public class OrderServiceImpl implements OrderService {
 		if (cartItems.isEmpty()) {
 			return Optional.empty();
 		}
-		  UserResponse user;
-	        try {
-	            user = userClient.getUser(userId);
-	        } catch (Exception e) {
-	            return Optional.empty();
-	        }
+		  UserResponse user =
+		            resilientUserClient.getUser(userId);
+
+		    if (user == null) {
+		        System.out.println(
+		                "User Service unavailable");
+		        return Optional.empty();
+		    }
 		BigDecimal totalPrice = cartItems.stream().
 				map(CartItem::getPrice).
 				reduce(BigDecimal.ZERO, BigDecimal::add);
