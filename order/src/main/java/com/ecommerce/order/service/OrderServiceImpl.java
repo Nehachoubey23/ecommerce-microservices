@@ -24,7 +24,6 @@ public class OrderServiceImpl implements OrderService {
 
 	private final OrderRepository orderRepository;
 	private final CartService cartService;
-	private final UserClient userClient;
 	private final ResilientUserClient resilientUserClient;
 
 	@Override

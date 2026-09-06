@@ -6,6 +6,7 @@ import com.ecommerce.order.client.UserClient;
 import com.ecommerce.order.dto.UserResponse;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -14,6 +15,9 @@ public class ResilientUserClient {
 
 	private final UserClient userClient;
 
+    @Retry(
+            name = "userService"
+    )
 	@CircuitBreaker(name = "userService", fallbackMethod = "userFallback")
 	public UserResponse getUser(String userId) {
 
